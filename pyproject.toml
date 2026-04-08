@@ -1,0 +1,15 @@
+[project]
+name = "ai-tutor-env"
+version = "1.0.0"
+description = "AI Tutor Evaluation Environment"
+authors = [
+    { name = "Akash Sharma" }
+]
+
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "requests",
+    "openai",
+    "pydantic"
+]
