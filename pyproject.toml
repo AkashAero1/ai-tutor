@@ -11,5 +11,9 @@ dependencies = [
     "uvicorn",
     "requests",
     "openai",
-    "pydantic"
+    "pydantic",
+    "openenv>=0.2.0"
 ]
+
+[project.scripts]
+server = "server.app:app"
