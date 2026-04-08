@@ -1,3 +1,13 @@
+---
+title: AI Tutor Environment
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # AI Tutor Evaluation Environment
 
 An OpenEnv-compliant RL environment where an LLM agent acts as an AI tutor.
