@@ -11,9 +11,9 @@ ENV_URL = os.environ.get("ENV_URL", "http://localhost:8000")
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://generativelanguage.googleapis.com")
 MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-2.5-flash")
-HF_TOKEN = os.environ.get("HF_TOKEN")  # required by checklist
+HF_TOKEN = os.environ.get("HF_TOKEN")  
 
-# Use HF_TOKEN as Gemini key
+
 genai.configure(api_key=HF_TOKEN)
 
 model = genai.GenerativeModel(MODEL_NAME)
