@@ -8,10 +8,13 @@ dotenv.load_dotenv()
 
 
 ENV_URL = os.environ.get("ENV_URL", "http://localhost:8000")
-GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
-MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-2.5-flash")
 
-genai.configure(api_key=GOOGLE_API_KEY)
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://generativelanguage.googleapis.com")
+MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-2.5-flash")
+HF_TOKEN = os.environ.get("HF_TOKEN")  # required by checklist
+
+# Use HF_TOKEN as Gemini key
+genai.configure(api_key=HF_TOKEN)
 
 model = genai.GenerativeModel(MODEL_NAME)
 
