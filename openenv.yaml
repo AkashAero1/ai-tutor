@@ -1,0 +1,73 @@
+name: ai-tutor-env
+description: >
+  An AI Tutor Evaluation Environment where an LLM agent acts as a tutor.
+  The agent must identify student mistakes, explain concepts clearly,
+  and correct student essays with detailed explanations.
+version: "1.0"
+author: "Akash Sharma"
+
+tasks:
+  - id: easy_1
+    difficulty: easy
+    description: "Identify the arithmetic mistake a student made."
+
+  - id: easy_2
+    difficulty: easy
+    description: "Identify a grammar mistake in a student's sentence."
+
+  - id: easy_3
+    difficulty: easy
+    description: "Identify a scientific misconception."
+
+  - id: medium_1
+    difficulty: medium
+    description: "Explain gravity to a 10-year-old student."
+
+  - id: medium_2
+    difficulty: medium
+    description: "Explain photosynthesis in simple terms."
+
+  - id: medium_3
+    difficulty: medium
+    description: "Explain the difference between simile and metaphor."
+
+  - id: hard_1
+    difficulty: hard
+    description: "Correct a student essay and explain every fix."
+
+  - id: hard_2
+    difficulty: hard
+    description: "Rewrite a weak paragraph and explain all improvements."
+
+  - id: hard_3
+    difficulty: hard
+    description: "Solve a multi-step word problem step-by-step."
+
+action_space:
+  type: text
+  description: "Free-form text answer from the LLM agent."
+
+observation_space:
+  type: object
+  fields:
+    task_id: string
+    difficulty: "easy | medium | hard"
+    description: string
+    question: string
+    step: integer
+    total_tasks: integer
+    cumulative_score: float
+    answered: boolean
+
+reward:
+  range: [0.0, 1.0]
+  description: >
+    Easy tasks: binary (0 or 1) based on keyword presence.
+    Medium tasks: partial credit based on keyword coverage ratio.
+    Hard tasks: partial credit with length penalty for shallow answers.
+
+endpoints:
+  reset: POST /reset
+  step:  POST /step
+  state: GET  /state
+  health: GET /health
