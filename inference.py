@@ -1,22 +1,15 @@
 import os
 import json
 import requests
-import google.generativeai as genai
-import dotenv
-
-dotenv.load_dotenv()
+from openai import OpenAI
 
 
 ENV_URL = os.environ.get("ENV_URL", "http://localhost:8000")
+API_BASE_URL = os.environ["API_BASE_URL"]
+MODEL_NAME = os.environ["MODEL_NAME"]
+HF_TOKEN = os.environ["HF_TOKEN"]
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://generativelanguage.googleapis.com")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-2.5-flash")
-HF_TOKEN = os.environ.get("HF_TOKEN")  
-
-
-genai.configure(api_key=HF_TOKEN)
-
-model = genai.GenerativeModel(MODEL_NAME)
+client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 
 SYSTEM_PROMPT = """You are an expert AI tutor helping students learn.
@@ -38,6 +31,7 @@ Make sure to:
 """
 
 
+
 def run():
     state = requests.post(f"{ENV_URL}/reset").json()
     print(f"[START] task_id={state['task_id']} total_tasks={state['total_tasks']}")
@@ -50,11 +44,15 @@ def run():
         difficulty = state.get("difficulty", "")
         task_id = state.get("task_id", "")
 
-        full_prompt = f"{SYSTEM_PROMPT}\n\nStudent Question:\n{question}"
-
-        response = model.generate_content(full_prompt)
-
-        answer = response.text.strip()
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            max_tokens=512,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": question},
+            ],
+        )
+        answer = response.choices[0].message.content.strip()
 
         result = requests.post(
             f"{ENV_URL}/step",
