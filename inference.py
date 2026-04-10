@@ -5,12 +5,11 @@ from openai import OpenAI
 
 
 ENV_URL = os.environ.get("ENV_URL", "http://localhost:8000")
-API_BASE_URL = os.environ["API_BASE_URL"]
-MODEL_NAME = os.environ["MODEL_NAME"]
-HF_TOKEN = os.environ["HF_TOKEN"]
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://api.openai.com/v1")
+MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o-mini")
+HF_TOKEN = os.environ.get("HF_TOKEN", "")
 
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
-
 
 SYSTEM_PROMPT = """You are an expert AI tutor helping students learn.
 
@@ -19,16 +18,7 @@ You will be given a task that is one of:
 2. Explaining a concept simply — use plain language with a real-life example.
 3. Fixing a student essay — correct every error and explain each fix.
 
-Always be specific, educational, and clear. Use keywords relevant to the subject.
-
-IMPORTANT:
-Your answer will be evaluated based on keyword coverage and explanation quality.
-
-Make sure to:
-- Include relevant subject keywords naturally
-- Give a clear explanation
-- Be sufficiently detailed (at least 80+ words for complex tasks)
-"""
+Always be specific, educational, and clear. Use keywords relevant to the subject."""
 
 
 
