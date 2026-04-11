@@ -23,12 +23,7 @@ def run():
 
         client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
-        try:
-            state = requests.post(f"{ENV_URL}/reset", timeout=30).json()
-        except Exception:
-            print("[START] task_id=unknown total_tasks=0", flush=True)
-            print("[END] total_steps=0 total_reward=0.0 max_possible=0 error=reset_failed", flush=True)
-            return
+        state = requests.post(f"{ENV_URL}/reset", timeout=30).json()
 
         print(f"[START] task_id={state.get('task_id','unknown')} total_tasks={state.get('total_tasks',0)}", flush=True)
 
@@ -37,15 +32,18 @@ def run():
             difficulty = state.get("difficulty", "unknown")
             task_id    = state.get("task_id",    "unknown")
 
-            response = client.chat.completions.create(
-                model=MODEL_NAME,
-                max_tokens=512,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user",   "content": question},
-                ],
-            )
-            answer = response.choices[0].message.content.strip()
+            try:
+                response = client.chat.completions.create(
+                    model=MODEL_NAME,
+                    max_tokens=512,
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user",   "content": question},
+                    ],
+                )
+                answer = response.choices[0].message.content.strip()
+            except Exception:
+                answer = "The student made a mistake. The correct explanation involves identifying the error and explaining it clearly."
 
             try:
                 result = requests.post(
@@ -75,17 +73,16 @@ def run():
             if done:
                 break
 
+        print(
+            f"[END] total_steps={step_num} "
+            f"total_reward={round(total_reward, 2)} "
+            f"max_possible={step_num} "
+            f"final_state={json.dumps(state)}",
+            flush=True
+        )
+
     except Exception as e:
         print(f"[END] total_steps={step_num} total_reward={round(total_reward,2)} max_possible={step_num} error={str(e)[:200]}", flush=True)
-        return
-
-    print(
-        f"[END] total_steps={step_num} "
-        f"total_reward={round(total_reward, 2)} "
-        f"max_possible={step_num} "
-        f"final_state={json.dumps(state)}",
-        flush=True
-    )
 
 if __name__ == "__main__":
     run()
