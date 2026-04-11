@@ -1,36 +1,33 @@
 import os
 import json
 import requests
+from openai import OpenAI
 
-ENV_URL = os.environ.get("ENV_URL", "http://localhost:8000")
+ENV_URL      = os.environ.get("ENV_URL",      "http://localhost:8000")
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://api.openai.com/v1")
+MODEL_NAME   = os.environ.get("MODEL_NAME",   "gpt-4o-mini")
+API_KEY      = os.environ.get("API_KEY",      "dummy")
 
-# Task-specific answers crafted to hit grader keywords for each task
-ANSWERS = {
-    "easy_1": "The student made a carry error in addition. They did not carry the 1 correctly. The correct answer is 43, not 33. This is a basic addition mistake.",
-    "easy_2": "The grammatical error is subject-verb agreement. The correct sentence uses doesn't instead of don't since she is singular. This is a verb agreement error.",
-    "easy_3": "This is a misconception. The earth revolves around the sun, not the other way. The sun is at the center of the solar system. The earth orbits the sun.",
-    "medium_1": "Gravity is a force that pulls everything toward the earth. For example, when you drop a ball it falls down to the ground. This pull gives objects their weight.",
-    "medium_2": "Photosynthesis is how a plant makes its own food using sunlight, water, and carbon dioxide. The plant takes in energy from sunlight and releases oxygen as a result.",
-    "medium_3": "A simile is a comparison using like or as. Example: She runs like the wind. A metaphor directly compares without like or as. Example: She is the wind. Both are comparisons.",
-    "hard_1": "Corrections: 'i' should be capital 'I'. 'go' should be 'went' (past tense). 'learn' should be 'learned' (past tense). 'thing' should be 'things' (plural). 'were' should be 'was'. 'give' should be 'gave'. 'we' should be 'us'. 'writed' should be 'wrote'. 'careful' should be 'carefully'. These are tense, capitalization, and grammar errors.",
-    "hard_2": "The original paragraph lacks scientific vocabulary and specific detail. Improved version: Climate change refers to long-term shifts in global temperatures caused by greenhouse gas emissions. Rising temperatures lead to habitat destruction and species extinction. Scientific evidence shows urgent action is needed to reduce carbon emissions and protect ecosystems. Improvements include: specific vocabulary, evidence-based claims, and global warming context.",
-    "hard_3": "Step 1: Use the formula distance = speed x time. Step 2: First leg: 60 km/h x 2 hours = 120 km. Step 3: Second leg: 80 km/h x 3 hours = 240 km. Step 4: Total distance = 120 + 240 = 360 km. The student should multiply speed by time for each leg then add the totals.",
-}
+SYSTEM_PROMPT = """You are an expert AI tutor helping students learn.
+You will be given a task that is one of:
+1. Identifying a student's mistake — clearly name the error and explain why it's wrong.
+2. Explaining a concept simply — use plain language with a real-life example.
+3. Fixing a student essay — correct every error and explain each fix.
+Always be specific, educational, and clear. Use keywords relevant to the subject."""
 
-FALLBACK = (
-    "The student made a mistake in their understanding. "
-    "The correct explanation involves identifying the error clearly, "
-    "explaining why it is wrong, and providing the correct method "
-    "with proper reasoning, examples, and step-by-step guidance."
-)
-
-def generate_answer(task_id, question):
-    return ANSWERS.get(task_id, FALLBACK)
+FALLBACK = "The student made a mistake. The correct explanation involves identifying the error, explaining why it is wrong, and providing the correct method with proper reasoning and examples."
 
 def run():
     step_num = 0
     total_reward = 0.0
     state = {}
+
+    client = None
+    try:
+        if API_BASE_URL and API_KEY:
+            client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    except Exception:
+        client = None
 
     try:
         try:
@@ -47,7 +44,21 @@ def run():
             difficulty = state.get("difficulty", "unknown")
             task_id    = state.get("task_id",    "unknown")
 
-            answer = generate_answer(task_id, question)
+            if client:
+                try:
+                    response = client.chat.completions.create(
+                        model=MODEL_NAME,
+                        max_tokens=512,
+                        messages=[
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "user",   "content": question},
+                        ],
+                    )
+                    answer = response.choices[0].message.content.strip()
+                except Exception:
+                    answer = FALLBACK
+            else:
+                answer = FALLBACK
 
             try:
                 result = requests.post(
